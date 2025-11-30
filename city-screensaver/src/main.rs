@@ -9,11 +9,17 @@ use rand::Rng;
 use std::io::{self, stdout, Write};
 use std::time::Duration;
 
-const BUILDING_COLOR: Color = Color::Rgb { r: 80, g: 80, b: 80 };
 const WINDOW_ON_COLOR: Color = Color::Rgb { r: 255, g: 255, b: 0 };
 const WINDOW_OFF_COLOR: Color = Color::Rgb { r: 40, g: 40, b: 40 };
 const ROAD_COLOR: Color = Color::Rgb { r: 20, g: 20, b: 20 };
 const MOON_COLOR: Color = Color::Rgb { r: 240, g: 240, b: 240 };
+const STAR_COLOR: Color = Color::Rgb { r: 255, g: 255, b: 255 };
+
+struct Star {
+    x: u16,
+    y: u16,
+    char: char,
+}
 
 struct Window {
     on: bool,
@@ -23,6 +29,7 @@ struct Building {
     x: u16,
     width: u16,
     height: u16,
+    color: Color,
     windows: Vec<Vec<Window>>,
 }
 
@@ -43,6 +50,7 @@ fn main() -> io::Result<()> {
     let (width, height) = terminal::size()?;
     let mut buildings = create_buildings(width, height);
     let mut vehicles = create_vehicles(height);
+    let mut stars = create_stars(width, height);
 
     let mut running = true;
     while running {
@@ -54,7 +62,8 @@ fn main() -> io::Result<()> {
 
         update_windows(&mut buildings);
         update_vehicles(&mut vehicles, width);
-        draw_scene(&mut stdout, &buildings, &vehicles, width, height)?;
+        update_stars(&mut stars);
+        draw_scene(&mut stdout, &buildings, &vehicles, &stars, width, height)?;
     }
 
     terminal::disable_raw_mode()?;
@@ -67,10 +76,17 @@ fn create_buildings(term_width: u16, term_height: u16) -> Vec<Building> {
     let mut buildings = Vec::new();
     let mut x = 0;
     let mut rng = rand::thread_rng();
+    let building_colors = [
+        Color::Rgb { r: 60, g: 60, b: 60 },
+        Color::Rgb { r: 70, g: 70, b: 70 },
+        Color::Rgb { r: 80, g: 80, b: 80 },
+        Color::Rgb { r: 90, g: 90, b: 90 },
+    ];
 
     while x < term_width {
         let width = rng.gen_range(5..15);
         let height = rng.gen_range(5..(term_height - 5));
+        let color = building_colors[rng.gen_range(0..building_colors.len())];
         let mut windows = Vec::new();
 
         for y in 1..height-1 {
@@ -83,7 +99,7 @@ fn create_buildings(term_width: u16, term_height: u16) -> Vec<Building> {
             windows.push(row);
         }
 
-        buildings.push(Building { x, width, height, windows });
+        buildings.push(Building { x, width, height, color, windows });
         x += width + rng.gen_range(1..5);
     }
     buildings
@@ -96,8 +112,22 @@ fn create_vehicles(term_height: u16) -> Vec<Vehicle> {
         Vehicle { x: 30.0, y: road_y - 1, style: "[\\__\\]", color: Color::Green, speed: -3.0 },
         Vehicle { x: 50.0, y: road_y, style: "o-o-o", color: Color::Cyan, speed: 4.0 },
         Vehicle { x: 70.0, y: road_y - 1, style: "[##-##]", color: Color::Magenta, speed: -2.5 },
-
+        Vehicle { x: 20.0, y: road_y, style: "<(o.o)>", color: Color::Red, speed: 2.0 },
+        Vehicle { x: 60.0, y: road_y - 1, style: "🚚", color: Color::Blue, speed: -2.0 },
     ]
+}
+
+fn create_stars(term_width: u16, term_height: u16) -> Vec<Star> {
+    let mut stars = Vec::new();
+    let mut rng = rand::thread_rng();
+    for _ in 0..50 {
+        stars.push(Star {
+            x: rng.gen_range(0..term_width),
+            y: rng.gen_range(0..term_height / 2),
+            char: ['.', '*', '+', '\''].get(rng.gen_range(0..4)).unwrap().clone(),
+        });
+    }
+    stars
 }
 
 fn update_windows(buildings: &mut [Building]) {
@@ -124,14 +154,32 @@ fn update_vehicles(vehicles: &mut [Vehicle], term_width: u16) {
     }
 }
 
+fn update_stars(stars: &mut [Star]) {
+    let mut rng = rand::thread_rng();
+    for star in stars {
+        if rng.gen_bool(0.05) {
+            star.char = ['.', '*', '+', '\''].get(rng.gen_range(0..4)).unwrap().clone();
+        }
+    }
+}
+
 fn draw_scene(
     stdout: &mut io::Stdout,
     buildings: &[Building],
     vehicles: &[Vehicle],
+    stars: &[Star],
     term_width: u16,
     term_height: u16,
 ) -> io::Result<()> {
     stdout.queue(Clear(ClearType::All))?;
+
+    // Draw stars
+    for star in stars {
+        stdout
+            .queue(cursor::MoveTo(star.x, star.y))?
+            .queue(style::SetForegroundColor(STAR_COLOR))?
+            .queue(Print(star.char))?;
+    }
 
     // Draw moon
     stdout
@@ -150,7 +198,7 @@ fn draw_scene(
             for x in 0..building.width {
                 stdout
                     .queue(cursor::MoveTo(building.x + x, term_height - building.height - 3 + y))?
-                    .queue(style::SetForegroundColor(BUILDING_COLOR))?
+                    .queue(style::SetForegroundColor(building.color))?
                     .queue(Print("█"))?;
             }
         }
