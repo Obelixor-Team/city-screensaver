@@ -49,24 +49,72 @@ struct Args {
 }
 
 /// Color constants for different elements in the city scene
-const WINDOW_ON_COLOR: Color = Color::Rgb { r: 255, g: 255, b: 0 };
-const WINDOW_OFF_COLOR: Color = Color::Rgb { r: 40, g: 40, b: 40 };
-const ROAD_COLOR: Color = Color::Rgb { r: 20, g: 20, b: 20 };
-const MOON_COLOR: Color = Color::Rgb { r: 240, g: 240, b: 240 };
-const STAR_COLOR: Color = Color::Rgb { r: 255, g: 255, b: 255 };
-const RAIN_COLOR: Color = Color::Rgb { r: 100, g: 100, b: 150 };
-const SNOW_COLOR: Color = Color::Rgb { r: 200, g: 200, b: 200 };
-const CLOUD_COLOR: Color = Color::Rgb { r: 150, g: 150, b: 150 };
+const WINDOW_ON_COLOR: Color = Color::Rgb {
+    r: 255,
+    g: 255,
+    b: 0,
+};
+const WINDOW_OFF_COLOR: Color = Color::Rgb {
+    r: 40,
+    g: 40,
+    b: 40,
+};
+const ROAD_COLOR: Color = Color::Rgb {
+    r: 20,
+    g: 20,
+    b: 20,
+};
+const MOON_COLOR: Color = Color::Rgb {
+    r: 240,
+    g: 240,
+    b: 240,
+};
+const STAR_COLOR: Color = Color::Rgb {
+    r: 255,
+    g: 255,
+    b: 255,
+};
+const RAIN_COLOR: Color = Color::Rgb {
+    r: 100,
+    g: 100,
+    b: 150,
+};
+const SNOW_COLOR: Color = Color::Rgb {
+    r: 200,
+    g: 200,
+    b: 200,
+};
+const CLOUD_COLOR: Color = Color::Rgb {
+    r: 150,
+    g: 150,
+    b: 150,
+};
 
 const STAR_CHARS: [char; 4] = ['.', '*', '+', '\''];
 const SNOWFLAKE_CHARS: [char; 3] = ['*', '.', 'o'];
 const CLOUD_SHAPES: [&str; 3] = ["_.-^-._", " ~~~", "(-.-)"];
 const ANTENNA_CHARS: [char; 3] = ['|', 'Y', 'i'];
 const BUILDING_COLORS: [Color; 4] = [
-    Color::Rgb { r: 60, g: 60, b: 60 },
-    Color::Rgb { r: 70, g: 70, b: 70 },
-    Color::Rgb { r: 80, g: 80, b: 80 },
-    Color::Rgb { r: 90, g: 90, b: 90 },
+    Color::Rgb {
+        r: 60,
+        g: 60,
+        b: 60,
+    },
+    Color::Rgb {
+        r: 70,
+        g: 70,
+        b: 70,
+    },
+    Color::Rgb {
+        r: 80,
+        g: 80,
+        b: 80,
+    },
+    Color::Rgb {
+        r: 90,
+        g: 90,
+        b: 90,
+    },
 ];
 const VEHICLE_STYLES: [(&str, Color, f32); 9] = [
     ("─=≡(°o°)", Color::Yellow, 5.0),
@@ -139,23 +187,47 @@ struct Vehicle {
 /// Sets up the terminal for the screensaver by enabling raw mode and switching to alternate screen
 fn setup_terminal() -> io::Result<std::io::Stdout> {
     let mut stdout = stdout();
-    stdout.execute(EnterAlternateScreen)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to enter alternate screen: {}", e)))?;
-    stdout.execute(Hide)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to hide cursor: {}", e)))?;
-    terminal::enable_raw_mode()
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to enable raw mode: {}", e)))?;
+    stdout.execute(EnterAlternateScreen).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to enter alternate screen: {}", e),
+        )
+    })?;
+    stdout.execute(Hide).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to hide cursor: {}", e),
+        )
+    })?;
+    terminal::enable_raw_mode().map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to enable raw mode: {}", e),
+        )
+    })?;
     Ok(stdout)
 }
 
 /// Restores the terminal to its original state after the screensaver exits
 fn restore_terminal(stdout: &mut std::io::Stdout) -> io::Result<()> {
-    terminal::disable_raw_mode()
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to disable raw mode: {}", e)))?;
-    stdout.execute(Show)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to show cursor: {}", e)))?;
-    stdout.execute(LeaveAlternateScreen)
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to leave alternate screen: {}", e)))?;
+    terminal::disable_raw_mode().map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to disable raw mode: {}", e),
+        )
+    })?;
+    stdout.execute(Show).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to show cursor: {}", e),
+        )
+    })?;
+    stdout.execute(LeaveAlternateScreen).map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to leave alternate screen: {}", e),
+        )
+    })?;
     Ok(())
 }
 
@@ -165,8 +237,12 @@ fn main() -> io::Result<()> {
     let mut stdout = setup_terminal()?;
 
     // Ensure terminal is restored on panic or exit
-    let (width, height) = terminal::size()
-        .map_err(|e| io::Error::new(io::ErrorKind::Other, format!("Failed to get terminal size: {}", e)))?;
+    let (width, height) = terminal::size().map_err(|e| {
+        io::Error::new(
+            io::ErrorKind::Other,
+            format!("Failed to get terminal size: {}", e),
+        )
+    })?;
     let mut rng = ThreadRng::default();
     let mut buildings = create_buildings(width, height, &mut rng);
     let mut vehicles = create_vehicles(height);
@@ -226,7 +302,18 @@ fn main() -> io::Result<()> {
                 // In a terminal screensaver, we typically don't show FPS overlay
             }
 
-            draw_scene(&mut stdout, &buildings, &vehicles, &stars, &raindrops, &snowflakes, &clouds, width, height, args.snow)?;
+            draw_scene(
+                &mut stdout,
+                &buildings,
+                &vehicles,
+                &stars,
+                &raindrops,
+                &snowflakes,
+                &clouds,
+                width,
+                height,
+                args.snow,
+            )?;
 
             // Calculate frame time for FPS display purposes
             let frame_time = frame_start.elapsed();
@@ -246,8 +333,6 @@ fn main() -> io::Result<()> {
     result
 }
 
-
-
 fn create_buildings(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Building> {
     let mut buildings = Vec::new();
     let mut x = 0;
@@ -258,11 +343,13 @@ fn create_buildings(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> V
         let color = BUILDING_COLORS[rng.random_range(0..BUILDING_COLORS.len())];
         let mut windows = Vec::new();
 
-        for y in 1..height-1 {
+        for y in 1..height - 1 {
             let mut row = Vec::new();
-            for wx in 1..width-1 {
+            for wx in 1..width - 1 {
                 if (y % 2 != 0) && (wx % 2 != 0) {
-                    row.push(Window { on: rng.random_bool(0.3) });
+                    row.push(Window {
+                        on: rng.random_bool(0.3),
+                    });
                 }
             }
             windows.push(row);
@@ -275,7 +362,15 @@ fn create_buildings(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> V
             ' '
         };
 
-        buildings.push(Building { x, width, height, color, windows, has_antenna, antenna_char });
+        buildings.push(Building {
+            x,
+            width,
+            height,
+            color,
+            windows,
+            has_antenna,
+            antenna_char,
+        });
         x += width + rng.random_range(1..5);
     }
     buildings
@@ -289,14 +384,29 @@ fn spawn_vehicle(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vehi
     let road_y = term_height - 3;
 
     let (style, color, speed) = VEHICLE_STYLES[rng.random_range(0..VEHICLE_STYLES.len())];
-    let y = if rng.random_bool(0.5) { road_y } else { road_y - 1 };
+    let y = if rng.random_bool(0.5) {
+        road_y
+    } else {
+        road_y - 1
+    };
     let x = if speed > 0.0 { 0.0 } else { term_width as f32 };
 
-    Vehicle { x, y, style, color, speed }
+    Vehicle {
+        x,
+        y,
+        style,
+        color,
+        speed,
+    }
 }
 
 /// Creates a specified number of stars with random positions and characters
-fn create_stars_with_count(term_width: u16, term_height: u16, rng: &mut ThreadRng, count: u16) -> Vec<Star> {
+fn create_stars_with_count(
+    term_width: u16,
+    term_height: u16,
+    rng: &mut ThreadRng,
+    count: u16,
+) -> Vec<Star> {
     let mut stars = Vec::new();
     for _ in 0..count {
         stars.push(Star {
@@ -310,10 +420,15 @@ fn create_stars_with_count(term_width: u16, term_height: u16, rng: &mut ThreadRn
 
 /// Creates 50 stars with random positions and characters
 fn create_stars(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Star> {
-    create_stars_with_count(term_width, term_height, rng, 50)  // Default to 50 for backward compatibility
+    create_stars_with_count(term_width, term_height, rng, 50) // Default to 50 for backward compatibility
 }
 
-fn create_raindrops_with_count(term_width: u16, term_height: u16, rng: &mut ThreadRng, count: u16) -> Vec<RainDrop> {
+fn create_raindrops_with_count(
+    term_width: u16,
+    term_height: u16,
+    rng: &mut ThreadRng,
+    count: u16,
+) -> Vec<RainDrop> {
     let mut raindrops = Vec::new();
     for _ in 0..count {
         raindrops.push(RainDrop {
@@ -326,7 +441,7 @@ fn create_raindrops_with_count(term_width: u16, term_height: u16, rng: &mut Thre
 }
 
 fn create_raindrops(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<RainDrop> {
-    create_raindrops_with_count(term_width, term_height, rng, 100)  // Default to 100 for backward compatibility
+    create_raindrops_with_count(term_width, term_height, rng, 100) // Default to 100 for backward compatibility
 }
 
 /// Updates the state of windows in all buildings, randomly toggling them on/off
@@ -346,12 +461,13 @@ fn update_vehicles(vehicles: &mut Vec<Vehicle>, term_width: u16) {
     let mut i = 0;
     while i < vehicles.len() {
         vehicles[i].x += vehicles[i].speed * 0.1;
-        
+
         let vehicle_width = vehicles[i].style.len() as f32; // Assuming ASCII chars have width 1
 
         // Remove vehicle if it's off-screen
-        if (vehicles[i].speed > 0.0 && vehicles[i].x > term_width as f32) || 
-           (vehicles[i].speed < 0.0 && vehicles[i].x < -vehicle_width) {
+        if (vehicles[i].speed > 0.0 && vehicles[i].x > term_width as f32)
+            || (vehicles[i].speed < 0.0 && vehicles[i].x < -vehicle_width)
+        {
             vehicles.remove(i);
         } else {
             i += 1;
@@ -367,7 +483,12 @@ fn update_stars(stars: &mut [Star], rng: &mut ThreadRng) {
     }
 }
 
-fn update_raindrops(raindrops: &mut [RainDrop], term_width: u16, term_height: u16, rng: &mut ThreadRng) {
+fn update_raindrops(
+    raindrops: &mut [RainDrop],
+    term_width: u16,
+    term_height: u16,
+    rng: &mut ThreadRng,
+) {
     for drop in raindrops {
         drop.y += drop.speed;
         if drop.y >= term_height {
@@ -377,7 +498,12 @@ fn update_raindrops(raindrops: &mut [RainDrop], term_width: u16, term_height: u1
     }
 }
 
-fn create_snowflakes_with_count(term_width: u16, term_height: u16, rng: &mut ThreadRng, count: u16) -> Vec<Snowflake> {
+fn create_snowflakes_with_count(
+    term_width: u16,
+    term_height: u16,
+    rng: &mut ThreadRng,
+    count: u16,
+) -> Vec<Snowflake> {
     let mut snowflakes = Vec::new();
     for _ in 0..count {
         snowflakes.push(Snowflake {
@@ -392,10 +518,15 @@ fn create_snowflakes_with_count(term_width: u16, term_height: u16, rng: &mut Thr
 }
 
 fn create_snowflakes(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Snowflake> {
-    create_snowflakes_with_count(term_width, term_height, rng, 50)  // Default to 50 for backward compatibility
+    create_snowflakes_with_count(term_width, term_height, rng, 50) // Default to 50 for backward compatibility
 }
 
-fn update_snowflakes(snowflakes: &mut [Snowflake], term_width: u16, term_height: u16, rng: &mut ThreadRng) {
+fn update_snowflakes(
+    snowflakes: &mut [Snowflake],
+    term_width: u16,
+    term_height: u16,
+    rng: &mut ThreadRng,
+) {
     for flake in snowflakes {
         flake.y += flake.speed_y;
         if flake.y >= term_height {
@@ -412,9 +543,15 @@ fn update_snowflakes(snowflakes: &mut [Snowflake], term_width: u16, term_height:
     }
 }
 
-fn create_clouds_with_count(term_width: u16, term_height: u16, rng: &mut ThreadRng, count: u16) -> Vec<Cloud> {
+fn create_clouds_with_count(
+    term_width: u16,
+    term_height: u16,
+    rng: &mut ThreadRng,
+    count: u16,
+) -> Vec<Cloud> {
     let mut clouds = Vec::new();
-    for _ in 0..count { // Create count clouds
+    for _ in 0..count {
+        // Create count clouds
         clouds.push(Cloud {
             x: rng.random_range(0..term_width) as f32,
             y: rng.random_range(0..term_height / 4), // Upper quarter of the screen
@@ -426,7 +563,7 @@ fn create_clouds_with_count(term_width: u16, term_height: u16, rng: &mut ThreadR
 }
 
 fn create_clouds(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Cloud> {
-    create_clouds_with_count(term_width, term_height, rng, 5)  // Default to 5 for backward compatibility
+    create_clouds_with_count(term_width, term_height, rng, 5) // Default to 5 for backward compatibility
 }
 
 fn update_clouds(clouds: &mut [Cloud], term_width: u16) {
@@ -501,13 +638,20 @@ fn draw_moon(stdout: &mut io::Stdout, term_width: u16) -> io::Result<()> {
 }
 
 /// Draws all buildings in the scene
-fn draw_buildings(stdout: &mut io::Stdout, buildings: &[Building], term_height: u16) -> io::Result<()> {
+fn draw_buildings(
+    stdout: &mut io::Stdout,
+    buildings: &[Building],
+    term_height: u16,
+) -> io::Result<()> {
     for building in buildings {
         // Draw building structure
         for y in 0..building.height {
             for x in 0..building.width {
                 stdout
-                    .queue(cursor::MoveTo(building.x + x, term_height - building.height - 3 + y))?
+                    .queue(cursor::MoveTo(
+                        building.x + x,
+                        term_height - building.height - 3 + y,
+                    ))?
                     .queue(style::SetForegroundColor(building.color))?
                     .queue(Print("█"))?;
             }
@@ -516,7 +660,10 @@ fn draw_buildings(stdout: &mut io::Stdout, buildings: &[Building], term_height: 
         // Draw antenna if present
         if building.has_antenna {
             stdout
-                .queue(cursor::MoveTo(building.x + building.width / 2, term_height - building.height - 4))?
+                .queue(cursor::MoveTo(
+                    building.x + building.width / 2,
+                    term_height - building.height - 4,
+                ))?
                 .queue(style::SetForegroundColor(building.color))?
                 .queue(Print(building.antenna_char))?;
         }
@@ -524,9 +671,16 @@ fn draw_buildings(stdout: &mut io::Stdout, buildings: &[Building], term_height: 
         // Draw windows
         for (wy, row) in building.windows.iter().enumerate() {
             for (wx, window) in row.iter().enumerate() {
-                let color = if window.on { WINDOW_ON_COLOR } else { WINDOW_OFF_COLOR };
+                let color = if window.on {
+                    WINDOW_ON_COLOR
+                } else {
+                    WINDOW_OFF_COLOR
+                };
                 stdout
-                    .queue(cursor::MoveTo(building.x + (wx as u16 * 2) + 1, term_height - building.height - 2 + (wy as u16 * 2)))?
+                    .queue(cursor::MoveTo(
+                        building.x + (wx as u16 * 2) + 1,
+                        term_height - building.height - 2 + (wy as u16 * 2),
+                    ))?
                     .queue(style::SetForegroundColor(color))?
                     .queue(Print("■"))?;
             }
@@ -543,7 +697,7 @@ fn draw_road(stdout: &mut io::Stdout, term_width: u16, term_height: u16) -> io::
     for _ in 0..term_width {
         stdout.queue(Print("="))?;
     }
-    stdout.queue(cursor::MoveTo(0, road_y+1))?;
+    stdout.queue(cursor::MoveTo(0, road_y + 1))?;
     for _ in 0..term_width {
         stdout.queue(Print("="))?;
     }
