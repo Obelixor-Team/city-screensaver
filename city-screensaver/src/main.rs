@@ -48,7 +48,7 @@ fn main() -> io::Result<()> {
     terminal::enable_raw_mode()?;
 
     let (width, height) = terminal::size()?;
-    let mut rng = rand::thread_rng();
+    let mut rng = ThreadRng::default();
     let mut buildings = create_buildings(width, height, &mut rng);
     let mut vehicles = create_vehicles(height);
     let mut stars = create_stars(width, height, &mut rng);
@@ -84,23 +84,23 @@ fn create_buildings(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> V
     ];
 
     while x < term_width {
-        let width = rng.gen_range(5..15);
-        let height = rng.gen_range(5..(term_height - 5));
-        let color = building_colors[rng.gen_range(0..building_colors.len())];
+        let width = rng.random_range(5..15);
+        let height = rng.random_range(5..(term_height - 5));
+        let color = building_colors[rng.random_range(0..building_colors.len())];
         let mut windows = Vec::new();
 
         for y in 1..height-1 {
             let mut row = Vec::new();
             for wx in 1..width-1 {
                 if (y % 2 != 0) && (wx % 2 != 0) {
-                    row.push(Window { on: rng.gen_bool(0.3) });
+                    row.push(Window { on: rng.random_bool(0.3) });
                 }
             }
             windows.push(row);
         }
 
         buildings.push(Building { x, width, height, color, windows });
-        x += width + rng.gen_range(1..5);
+        x += width + rng.random_range(1..5);
     }
     buildings
 }
@@ -122,9 +122,9 @@ fn create_stars(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<S
     let star_chars = ['.', '*', '+', '\''];
     for _ in 0..50 {
         stars.push(Star {
-            x: rng.gen_range(0..term_width),
-            y: rng.gen_range(0..term_height / 2),
-            char: star_chars[rng.gen_range(0..star_chars.len())],
+            x: rng.random_range(0..term_width),
+            y: rng.random_range(0..term_height / 2),
+            char: star_chars[rng.random_range(0..star_chars.len())],
         });
     }
     stars
@@ -134,7 +134,7 @@ fn update_windows(buildings: &mut [Building], rng: &mut ThreadRng) {
     for building in buildings {
         for row in &mut building.windows {
             for window in row {
-                if rng.gen_bool(0.01) {
+                if rng.random_bool(0.01) {
                     window.on = !window.on;
                 }
             }
@@ -156,8 +156,8 @@ fn update_vehicles(vehicles: &mut [Vehicle], term_width: u16) {
 fn update_stars(stars: &mut [Star], rng: &mut ThreadRng) {
     let star_chars = ['.', '*', '+', '\''];
     for star in stars {
-        if rng.gen_bool(0.05) {
-            star.char = star_chars[rng.gen_range(0..star_chars.len())];
+        if rng.random_bool(0.05) {
+            star.char = star_chars[rng.random_range(0..star_chars.len())];
         }
     }
 }
