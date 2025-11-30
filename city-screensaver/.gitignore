@@ -16,7 +16,6 @@
 *.ncb
 *~
 *.orig
-README.md
 /nbproject/
 /build/
 
