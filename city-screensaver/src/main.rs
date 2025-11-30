@@ -120,11 +120,12 @@ fn create_vehicles(term_height: u16) -> Vec<Vehicle> {
 fn create_stars(term_width: u16, term_height: u16) -> Vec<Star> {
     let mut stars = Vec::new();
     let mut rng = rand::thread_rng();
+    let star_chars = ['.', '*', '+', '\''];
     for _ in 0..50 {
         stars.push(Star {
             x: rng.gen_range(0..term_width),
             y: rng.gen_range(0..term_height / 2),
-            char: ['.', '*', '+', '\''].get(rng.gen_range(0..4)).unwrap().clone(),
+            char: star_chars[rng.gen_range(0..star_chars.len())],
         });
     }
     stars
@@ -156,9 +157,10 @@ fn update_vehicles(vehicles: &mut [Vehicle], term_width: u16) {
 
 fn update_stars(stars: &mut [Star]) {
     let mut rng = rand::thread_rng();
+    let star_chars = ['.', '*', '+', '\''];
     for star in stars {
         if rng.gen_bool(0.05) {
-            star.char = ['.', '*', '+', '\''].get(rng.gen_range(0..4)).unwrap().clone();
+            star.char = star_chars[rng.gen_range(0..star_chars.len())];
         }
     }
 }
