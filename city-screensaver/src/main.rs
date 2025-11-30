@@ -5,7 +5,7 @@ use crossterm::{
     terminal::{self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand, QueueableCommand,
 };
-use rand::Rng;
+use rand::{rngs::ThreadRng, Rng};
 use std::io::{self, stdout, Write};
 use std::time::Duration;
 
@@ -48,9 +48,10 @@ fn main() -> io::Result<()> {
     terminal::enable_raw_mode()?;
 
     let (width, height) = terminal::size()?;
-    let mut buildings = create_buildings(width, height);
+    let mut rng = rand::thread_rng();
+    let mut buildings = create_buildings(width, height, &mut rng);
     let mut vehicles = create_vehicles(height);
-    let mut stars = create_stars(width, height);
+    let mut stars = create_stars(width, height, &mut rng);
 
     let mut running = true;
     while running {
@@ -60,9 +61,9 @@ fn main() -> io::Result<()> {
             }
         }
 
-        update_windows(&mut buildings);
+        update_windows(&mut buildings, &mut rng);
         update_vehicles(&mut vehicles, width);
-        update_stars(&mut stars);
+        update_stars(&mut stars, &mut rng);
         draw_scene(&mut stdout, &buildings, &vehicles, &stars, width, height)?;
     }
 
@@ -72,10 +73,9 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn create_buildings(term_width: u16, term_height: u16) -> Vec<Building> {
+fn create_buildings(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Building> {
     let mut buildings = Vec::new();
     let mut x = 0;
-    let mut rng = rand::thread_rng();
     let building_colors = [
         Color::Rgb { r: 60, g: 60, b: 60 },
         Color::Rgb { r: 70, g: 70, b: 70 },
@@ -117,9 +117,8 @@ fn create_vehicles(term_height: u16) -> Vec<Vehicle> {
     ]
 }
 
-fn create_stars(term_width: u16, term_height: u16) -> Vec<Star> {
+fn create_stars(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Star> {
     let mut stars = Vec::new();
-    let mut rng = rand::thread_rng();
     let star_chars = ['.', '*', '+', '\''];
     for _ in 0..50 {
         stars.push(Star {
@@ -131,8 +130,7 @@ fn create_stars(term_width: u16, term_height: u16) -> Vec<Star> {
     stars
 }
 
-fn update_windows(buildings: &mut [Building]) {
-    let mut rng = rand::thread_rng();
+fn update_windows(buildings: &mut [Building], rng: &mut ThreadRng) {
     for building in buildings {
         for row in &mut building.windows {
             for window in row {
@@ -155,8 +153,7 @@ fn update_vehicles(vehicles: &mut [Vehicle], term_width: u16) {
     }
 }
 
-fn update_stars(stars: &mut [Star]) {
-    let mut rng = rand::thread_rng();
+fn update_stars(stars: &mut [Star], rng: &mut ThreadRng) {
     let star_chars = ['.', '*', '+', '\''];
     for star in stars {
         if rng.gen_bool(0.05) {
