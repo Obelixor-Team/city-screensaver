@@ -15,6 +15,8 @@ const ROAD_COLOR: Color = Color::Rgb { r: 20, g: 20, b: 20 };
 const MOON_COLOR: Color = Color::Rgb { r: 240, g: 240, b: 240 };
 const STAR_COLOR: Color = Color::Rgb { r: 255, g: 255, b: 255 };
 const RAIN_COLOR: Color = Color::Rgb { r: 100, g: 100, b: 150 };
+const SNOW_COLOR: Color = Color::Rgb { r: 200, g: 200, b: 200 };
+const CLOUD_COLOR: Color = Color::Rgb { r: 150, g: 150, b: 150 };
 
 struct Star {
     x: u16,
@@ -26,6 +28,21 @@ struct RainDrop {
     x: u16,
     y: u16,
     speed: u16,
+}
+
+struct Snowflake {
+    x: u16,
+    y: u16,
+    speed_y: u16,
+    speed_x: i8, // For horizontal drift
+    char: char,
+}
+
+struct Cloud {
+    x: f32,
+    y: u16,
+    shape: &'static str,
+    speed: f32,
 }
 
 struct Window {
@@ -62,6 +79,9 @@ fn main() -> io::Result<()> {
     let mut vehicles = create_vehicles(height);
     let mut stars = create_stars(width, height, &mut rng);
     let mut raindrops = create_raindrops(width, height, &mut rng);
+    let mut snowflakes = create_snowflakes(width, height, &mut rng);
+    let mut clouds = create_clouds(width, height, &mut rng);
+
 
     let mut running = true;
     while running {
@@ -79,7 +99,9 @@ fn main() -> io::Result<()> {
         update_vehicles(&mut vehicles, width);
         update_stars(&mut stars, &mut rng);
         update_raindrops(&mut raindrops, width, height, &mut rng);
-        draw_scene(&mut stdout, &buildings, &vehicles, &stars, &raindrops, width, height)?;
+        update_snowflakes(&mut snowflakes, width, height, &mut rng);
+        update_clouds(&mut clouds, width);
+        draw_scene(&mut stdout, &buildings, &vehicles, &stars, &raindrops, &snowflakes, &clouds, width, height)?;
     }
 
     terminal::disable_raw_mode()?;
@@ -87,6 +109,8 @@ fn main() -> io::Result<()> {
     stdout.execute(LeaveAlternateScreen)?;
     Ok(())
 }
+
+
 
 fn create_buildings(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Building> {
     let mut buildings = Vec::new();
@@ -226,16 +250,81 @@ fn update_raindrops(raindrops: &mut [RainDrop], term_width: u16, term_height: u1
     }
 }
 
+fn create_snowflakes(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Snowflake> {
+    let mut snowflakes = Vec::new();
+    let snowflake_chars = ['*', '.', 'o'];
+    for _ in 0..50 {
+        snowflakes.push(Snowflake {
+            x: rng.gen_range(0..term_width),
+            y: rng.gen_range(0..term_height),
+            speed_y: rng.gen_range(1..2),
+            speed_x: rng.gen_range(-1..2),
+            char: snowflake_chars[rng.gen_range(0..snowflake_chars.len())],
+        });
+    }
+    snowflakes
+}
+
+fn update_snowflakes(snowflakes: &mut [Snowflake], term_width: u16, term_height: u16, rng: &mut ThreadRng) {
+    for flake in snowflakes {
+        flake.y += flake.speed_y;
+        if flake.y >= term_height {
+            flake.y = 0;
+            flake.x = rng.gen_range(0..term_width);
+        }
+
+        flake.x = (flake.x as i16 + flake.speed_x as i16) as u16;
+        if flake.x >= term_width {
+            flake.x = 0;
+        } else if flake.x == 0 && flake.speed_x < 0 {
+            flake.x = term_width - 1;
+        }
+    }
+}
+
+fn create_clouds(term_width: u16, term_height: u16, rng: &mut ThreadRng) -> Vec<Cloud> {
+    let mut clouds = Vec::new();
+    let cloud_shapes = ["_.-^-._", " ~~~", "(-.-)"];
+    for _ in 0..5 { // Create a few clouds
+        clouds.push(Cloud {
+            x: rng.gen_range(0..term_width) as f32,
+            y: rng.gen_range(0..term_height / 4), // Upper quarter of the screen
+            shape: cloud_shapes[rng.gen_range(0..cloud_shapes.len())],
+            speed: rng.gen_range(0.5..1.5),
+        });
+    }
+    clouds
+}
+
+fn update_clouds(clouds: &mut [Cloud], term_width: u16) {
+    for cloud in clouds {
+        cloud.x += cloud.speed * 0.1;
+        if cloud.x > term_width as f32 {
+            cloud.x = -(cloud.shape.len() as f32); // Wrap around
+        }
+    }
+}
+
 fn draw_scene(
     stdout: &mut io::Stdout,
     buildings: &[Building],
     vehicles: &[Vehicle],
     stars: &[Star],
     raindrops: &[RainDrop],
+    snowflakes: &[Snowflake],
+    clouds: &[Cloud],
     term_width: u16,
     term_height: u16,
 ) -> io::Result<()> {
     stdout.queue(Clear(ClearType::All))?;
+
+    // Draw clouds
+    for cloud in clouds {
+        stdout
+            .queue(cursor::MoveTo(cloud.x as u16, cloud.y))?
+            .queue(style::SetForegroundColor(CLOUD_COLOR))?
+            .queue(Print(cloud.shape))?;
+    }
 
     // Draw stars
     for star in stars {
@@ -303,6 +392,14 @@ fn draw_scene(
             .queue(cursor::MoveTo(drop.x, drop.y))?
             .queue(style::SetForegroundColor(RAIN_COLOR))?
             .queue(Print("|"))?;
+    }
+
+    // Draw snowflakes
+    for flake in snowflakes {
+        stdout
+            .queue(cursor::MoveTo(flake.x, flake.y))?
+            .queue(style::SetForegroundColor(SNOW_COLOR))?
+            .queue(Print(flake.char))?;
     }
 
     // Draw vehicles
