@@ -188,20 +188,17 @@ struct Vehicle {
 fn setup_terminal() -> io::Result<std::io::Stdout> {
     let mut stdout = stdout();
     stdout.execute(EnterAlternateScreen).map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
+        io::Error::other(
             format!("Failed to enter alternate screen: {}", e),
         )
     })?;
     stdout.execute(Hide).map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
+        io::Error::other(
             format!("Failed to hide cursor: {}", e),
         )
     })?;
     terminal::enable_raw_mode().map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
+        io::Error::other(
             format!("Failed to enable raw mode: {}", e),
         )
     })?;
@@ -211,20 +208,17 @@ fn setup_terminal() -> io::Result<std::io::Stdout> {
 /// Restores the terminal to its original state after the screensaver exits
 fn restore_terminal(stdout: &mut std::io::Stdout) -> io::Result<()> {
     terminal::disable_raw_mode().map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
+        io::Error::other(
             format!("Failed to disable raw mode: {}", e),
         )
     })?;
     stdout.execute(Show).map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
+        io::Error::other(
             format!("Failed to show cursor: {}", e),
         )
     })?;
     stdout.execute(LeaveAlternateScreen).map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
+        io::Error::other(
             format!("Failed to leave alternate screen: {}", e),
         )
     })?;
@@ -238,8 +232,7 @@ fn main() -> io::Result<()> {
 
     // Ensure terminal is restored on panic or exit
     let (width, height) = terminal::size().map_err(|e| {
-        io::Error::new(
-            io::ErrorKind::Other,
+        io::Error::other(
             format!("Failed to get terminal size: {}", e),
         )
     })?;
