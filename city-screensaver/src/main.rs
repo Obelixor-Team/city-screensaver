@@ -74,7 +74,7 @@ fn main() -> io::Result<()> {
     terminal::enable_raw_mode()?;
 
     let (width, height) = terminal::size()?;
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rngs::ThreadRng::default();
     let mut buildings = create_buildings(width, height, &mut rng);
     let mut vehicles = create_vehicles(height);
     let mut stars = create_stars(width, height, &mut rng);
